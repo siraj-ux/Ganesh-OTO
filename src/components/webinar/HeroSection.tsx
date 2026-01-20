@@ -20,7 +20,7 @@ const FORM_ID = "webinar-lead-form";
 const YOUTUBE_ID = "eNUfnbzLr7M";
 
 const PABBLY_WEBHOOK_URL =
-  "https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjcwNTZjMDYzNzA0MzE1MjY4NTUzNTUxMzUi_pc";
+  "https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjcwNTZjMDYzNzA0MzE1MjY4NTUzNTUxMzIi_pc";
 
 const PAGE_NAME = "A1_Eng_ADX_OTO_GA";
 

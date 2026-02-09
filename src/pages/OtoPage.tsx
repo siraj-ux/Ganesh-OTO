@@ -5,26 +5,20 @@ import {
   BadgeIndianRupee,
   CheckCircle2,
   ArrowRight,
-  User,
-  Mail,
-  Phone,
-  MapPin,
 } from "lucide-react";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// ✅ Pabbly webhook (send only if checkbox ticked)
 const PABBLY_OTO_WEBHOOK_URL =
-  " https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjcwNTZjMDYzNzA0MzE1MjY4NTUzNTUxMzUi_pc";
+  "https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjcwNTZjMDYzNzA0MzE1MjY4NTUzNTUxMzUi_pc";
 
-// ✅ Razorpay payment link (₹99)
-const PAYMENT_LINK_99 = "https://pages.razorpay.com/pl_Ry77FbJBRdJVDu/view";
+const PAYMENT_LINK_99 =
+  "https://pages.razorpay.com/pl_Ry77FbJBRdJVDu/view";
 
-// ✅ Thank you page route
 const THANKYOU_URL = "/ty";
-
-// ✅ Page name (required)
 const PAGE_NAME = "A1_Eng_ADX_OTO_GA";
+
+/* ---------------- helpers ---------------- */
 
 function getUtmsFromUrl() {
   const p = new URLSearchParams(window.location.search);
@@ -72,33 +66,20 @@ function getLeadFromUrlOrStorage() {
   return leadFromUrl;
 }
 
-/**
- * ✅ BEST RELIABLE FRONTEND SENDER (no preflight + survives redirect)
- * 1) Try sendBeacon (best for redirects, no CORS read)
- * 2) Fallback to fetch with no-cors + x-www-form-urlencoded (no preflight)
- *
- * NOTE: You still may see a console warning sometimes. That’s normal for no-cors.
- */
 function sendToPabblyBestEffort(payload: Record<string, any>) {
   try {
-    // Always send as form-url-encoded to avoid preflight.
     const body = new URLSearchParams();
     Object.entries(payload).forEach(([k, v]) =>
       body.append(k, v == null ? "" : String(v))
     );
 
-    // 1) sendBeacon first (most reliable before redirect)
     try {
       const blob = new Blob([body.toString()], {
         type: "application/x-www-form-urlencoded;charset=UTF-8",
       });
-      const ok = navigator.sendBeacon?.(PABBLY_OTO_WEBHOOK_URL, blob);
-      if (ok) return;
-    } catch {
-      // ignore
-    }
+      if (navigator.sendBeacon?.(PABBLY_OTO_WEBHOOK_URL, blob)) return;
+    } catch {}
 
-    // 2) fallback fetch no-cors (fire-and-forget)
     fetch(PABBLY_OTO_WEBHOOK_URL, {
       method: "POST",
       mode: "no-cors",
@@ -108,13 +89,13 @@ function sendToPabblyBestEffort(payload: Record<string, any>) {
       body,
       keepalive: true,
     }).catch(() => {});
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
+/* ---------------- PAGE ---------------- */
+
 const OtoPage = () => {
-  const [form, setForm] = useState({
+  const [lead, setLead] = useState({
     name: "",
     email: "",
     phone: "",
@@ -123,106 +104,68 @@ const OtoPage = () => {
     objective: "",
   });
 
-  const [otoChecked, setOtoChecked] = useState(true);
-
-  const [touched, setTouched] = useState({
-    name: false,
-    email: false,
-    phone: false,
-    city: false,
-  });
+  // ✅ NOTHING selected initially
+  const [choice, setChoice] = useState<"yes" | "no" | "">("");
+  const [submittedOnce, setSubmittedOnce] = useState(false);
 
   const utms = useMemo(() => getUtmsFromUrl(), []);
 
   useEffect(() => {
-    const lead = getLeadFromUrlOrStorage();
-    setForm(lead);
+    setLead(getLeadFromUrlOrStorage());
   }, []);
 
-  const errors = useMemo(() => {
-    const name = form.name.trim().length < 2 ? "Please enter your full name." : "";
-    const email = !EMAIL_RE.test(form.email.trim()) ? "Please enter a valid email." : "";
-    const phoneDigits = form.phone.replace(/\D/g, "");
+  const leadErrors = useMemo(() => {
+    const name = lead.name.trim().length < 2;
+    const email = !EMAIL_RE.test(lead.email.trim());
     const phone =
-      phoneDigits.length < 10 || phoneDigits.length > 13
-        ? "Please enter a valid phone number (10–13 digits)."
-        : "";
-    const city = form.city.trim().length < 2 ? "Please enter your city." : "";
+      lead.phone.replace(/\D/g, "").length < 10 ||
+      lead.phone.replace(/\D/g, "").length > 13;
+    const city = lead.city.trim().length < 2;
     return { name, email, phone, city };
-  }, [form]);
+  }, [lead]);
 
-  const isValid = useMemo(
-    () => !errors.name && !errors.email && !errors.phone && !errors.city,
-    [errors]
-  );
+  const leadIsValid =
+    !leadErrors.name &&
+    !leadErrors.email &&
+    !leadErrors.phone &&
+    !leadErrors.city;
 
-  const showError = (k: keyof typeof errors) => touched[k] && !!errors[k];
+  const choiceIsValid = choice === "yes" || choice === "no";
+  const canContinue = leadIsValid && choiceIsValid;
 
-  const setField = (k: keyof typeof form, v: string) =>
-    setForm((p) => ({ ...p, [k]: v }));
+  async function handleContinue() {
+    setSubmittedOnce(true);
+    if (!canContinue) return;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setTouched({ name: true, email: true, phone: true, city: true });
-    if (!isValid) return;
+    localStorage.setItem("lead_data", JSON.stringify(lead));
+    localStorage.setItem("lead_utms", JSON.stringify(utms));
 
-    // ✅ store backup
-    try {
-      localStorage.setItem("lead_data", JSON.stringify(form));
-      localStorage.setItem("lead_utms", JSON.stringify(utms));
-    } catch {}
-
-    const weburl = window.location.href;
-
-    // ✅ build query params to pass to Razorpay / TY
     const params = new URLSearchParams({
-      first_name: form.name,
-      email: form.email,
-      whatsapp_number: form.phone,
-      city: form.city,
-      profession: form.profession,
-      objective: form.objective,
+      first_name: lead.name,
+      email: lead.email,
+      whatsapp_number: lead.phone,
+      city: lead.city,
+      profession: lead.profession,
+      objective: lead.objective,
       page_name: PAGE_NAME,
-      weburl,
-      ...utms,
-      oto: otoChecked ? "yes" : "no",
+      oto: choice,
       oto_product: "AI Stock & IPO Prompt Codex",
       oto_price: "99",
+      ...utms,
     }).toString();
 
-    // ✅ send to Pabbly ONLY if checkbox ticked
-    if (otoChecked) {
-      const payload = {
-        first_name: form.name,
-        email: form.email,
-        whatsapp_number: form.phone,
-        city: form.city,
-        profession: form.profession,
-        objective: form.objective,
-
-        // tracking
+    if (choice === "yes") {
+      sendToPabblyBestEffort({
+        ...lead,
         ...utms,
-
-        // required extras
         page_name: PAGE_NAME,
-        weburl,
-
-        // offer fields
+        weburl: window.location.href,
         oto: "yes",
         oto_product: "AI Stock & IPO Prompt Codex",
         oto_price: "99",
-      };
+      });
 
-      // ✅ best-effort (beacon -> fetch no-cors)
-      sendToPabblyBestEffort(payload);
-
-      // ✅ small delay helps some browsers flush request before redirect (non-blocking UX)
-      // Keep it tiny to avoid user feel.
       await new Promise((r) => setTimeout(r, 120));
-    }
-
-    // ✅ redirect
-    if (otoChecked) {
       window.location.href = `${PAYMENT_LINK_99}?${params}`;
       return;
     }
@@ -230,8 +173,10 @@ const OtoPage = () => {
     window.location.href = `${THANKYOU_URL}?${params}`;
   }
 
+  const buttonText = choice === "no" ? "Confirm To Join Whatsapp Group" : "Confirm & Continue";
+
   return (
-    <section className="relative overflow-hidden bg-[#FFF3E1]">
+     <section className="relative overflow-hidden bg-[#FFF3E1]">
       {/* soft blobs */}
       <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-[#2E4C8C]/10 blur-3xl" />
       <div className="pointer-events-none absolute top-24 right-0 h-72 w-72 rounded-full bg-[#FA2D1A]/10 blur-3xl" />
@@ -280,7 +225,7 @@ const OtoPage = () => {
             </div>
           </motion.div>
 
-          {/* ===================== FORM ===================== */}
+          {/* ===================== CHOICE BOX (REPLACES FORM) ===================== */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -290,126 +235,87 @@ const OtoPage = () => {
           >
             <div className="p-5">
               <div className="text-center mb-4">
-                <p className="text-xs font-semibold text-[#2E4C8C]">Confirm Your Details</p>
-                <h3 className="text-lg font-extrabold text-[#2E4C8C] mt-1">Grab the ₹99 Offer</h3>
-                <p className="text-xs text-[#3B3F4A] mt-1">Tick the checkbox & continue.</p>
+                <p className="text-xs font-semibold text-[#2E4C8C]">One last step</p>
+                <h3 className="text-lg font-extrabold text-[#2E4C8C] mt-1">
+                  Choose Yes / No
+                </h3>
+                <p className="text-xs text-[#3B3F4A] mt-1">
+                  If you select <b>Yes</b>, you’ll go to payment (₹99). If <b>No</b>, you’ll skip.
+                </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-3">
-                {/* Name */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#2E4C8C]">Full Name</label>
-                  <div
-                    className={`flex items-center gap-2 rounded-xl border bg-white/80 px-3 py-2.5 ${
-                      showError("name") ? "border-[#FA2D1A]/60" : "border-[#2E4C8C]/15"
-                    }`}
-                  >
-                    <User className="w-4 h-4 text-[#2E4C8C]" />
-                    <input
-                      value={form.name}
-                      onChange={(e) => setField("name", e.target.value)}
-                      onBlur={() => setTouched((p) => ({ ...p, name: true }))}
-                      className="w-full bg-transparent outline-none text-sm text-[#1A1F2B]"
-                      placeholder="Enter your name"
-                      autoComplete="name"
-                    />
-                  </div>
-                  {showError("name") ? <p className="text-[11px] text-[#FA2D1A]">{errors.name}</p> : null}
-                </div>
-
-                {/* Email */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#2E4C8C]">Email</label>
-                  <div
-                    className={`flex items-center gap-2 rounded-xl border bg-white/80 px-3 py-2.5 ${
-                      showError("email") ? "border-[#FA2D1A]/60" : "border-[#2E4C8C]/15"
-                    }`}
-                  >
-                    <Mail className="w-4 h-4 text-[#2E4C8C]" />
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => setField("email", e.target.value)}
-                      onBlur={() => setTouched((p) => ({ ...p, email: true }))}
-                      className="w-full bg-transparent outline-none text-sm text-[#1A1F2B]"
-                      placeholder="Enter your email"
-                      autoComplete="email"
-                    />
-                  </div>
-                  {showError("email") ? <p className="text-[11px] text-[#FA2D1A]">{errors.email}</p> : null}
-                </div>
-
-                {/* Phone */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#2E4C8C]">WhatsApp Number</label>
-                  <div
-                    className={`flex items-center gap-2 rounded-xl border bg-white/80 px-3 py-2.5 ${
-                      showError("phone") ? "border-[#FA2D1A]/60" : "border-[#2E4C8C]/15"
-                    }`}
-                  >
-                    <Phone className="w-4 h-4 text-[#2E4C8C]" />
-                    <input
-                      inputMode="tel"
-                      value={form.phone}
-                      onChange={(e) => setField("phone", e.target.value.replace(/[^\d+\-\s()]/g, ""))}
-                      onBlur={() => setTouched((p) => ({ ...p, phone: true }))}
-                      className="w-full bg-transparent outline-none text-sm text-[#1A1F2B]"
-                      placeholder="Enter WhatsApp number"
-                      autoComplete="tel"
-                    />
-                  </div>
-                  {showError("phone") ? <p className="text-[11px] text-[#FA2D1A]">{errors.phone}</p> : null}
-                </div>
-
-                {/* City */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#2E4C8C]">City</label>
-                  <div
-                    className={`flex items-center gap-2 rounded-xl border bg-white/80 px-3 py-2.5 ${
-                      showError("city") ? "border-[#FA2D1A]/60" : "border-[#2E4C8C]/15"
-                    }`}
-                  >
-                    <MapPin className="w-4 h-4 text-[#2E4C8C]" />
-                    <input
-                      value={form.city}
-                      onChange={(e) => setField("city", e.target.value)}
-                      onBlur={() => setTouched((p) => ({ ...p, city: true }))}
-                      className="w-full bg-transparent outline-none text-sm text-[#1A1F2B]"
-                      placeholder="Enter your city"
-                      autoComplete="address-level2"
-                    />
-                  </div>
-                  {showError("city") ? <p className="text-[11px] text-[#FA2D1A]">{errors.city}</p> : null}
-                </div>
-
-                {/* Checkbox */}
-                <label className="flex items-start gap-3 rounded-xl border border-[#2E4C8C]/15 bg-white/70 p-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={otoChecked}
-                    onChange={(e) => setOtoChecked(e.target.checked)}
-                    className="mt-1"
-                  />
-                  <span className="text-sm text-[#1A1F2B]">
-                    <span className="font-bold">
-                      Yes, I Want to add the AI Stock & IPO Prompt Codex for ₹99 (One Time Offer)
-                    </span>
+              {/* YES */}
+              <label className="flex items-start gap-3 rounded-xl border border-[#2E4C8C] bg-white/70 p-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="oto_choice"
+                  checked={choice === "yes"}
+                  onChange={() => setChoice("yes")}
+                  className="mt-1"
+                />
+                <span className="text-sm text-[#1A1F2B]">
+                  <span className="font-bold">
+                    Yes, add the AI Stock & IPO Prompt Codex for ₹99 (One Time Offer)
                   </span>
-                </label>
+                  {choice === "yes" ? (
+                    <div className="mt-1 text-[11px] text-[#3B3F4A]">
+                      You’ll be redirected to Razorpay to complete the ₹99 payment.
+                    </div>
+                  ) : null}
+                </span>
+              </label>
 
-                <button
-                  type="submit"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold text-white shadow-md hover:shadow-lg transition active:scale-[0.99]"
-                  style={{ backgroundColor: "#FA2D1A" }}
-                >
-                  Confirm & Continue
-                  <ArrowRight className="w-5 h-5" />
-                </button>
+              {/* NO */}
+              <label className="mt-3 flex items-start gap-3 rounded-xl border border-[#2E4C8C]/15 bg-white/70 p-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="oto_choice"
+                  checked={choice === "no"}
+                  onChange={() => setChoice("no")}
+                  className="mt-1"
+                />
+                <span className="text-sm text-[#1A1F2B]">
+                  <span className="font-bold">No, thanks. I’ll skip this offer.</span>
+                  {choice === "no" ? (
+                    <div className="mt-1 text-[11px] text-[#3B3F4A]">
+                      ➜ You’ll continue without this add-on.
+                    </div>
+                  ) : null}
+                </span>
+              </label>
 
-                <p className="text-[11px] text-center text-[#3B3F4A]">
-                  You’ll continue after confirming the offer.
+              {/* Validation messages */}
+              {!leadIsValid && submittedOnce ? (
+                <div className="mt-3 rounded-xl border border-[#FA2D1A]/25 bg-[#FA2D1A]/10 p-3 text-[11px] text-[#1A1F2B]">
+                  <div className="font-extrabold text-[#FA2D1A] mb-1">
+                    We couldn’t verify your details.
+                  </div>
+                  <div className="text-[#3B3F4A]">
+                    Please go back and submit the main form again (name, email, phone, city are required).
+                  </div>
+                </div>
+              ) : null}
+
+              {!choiceIsValid && submittedOnce ? (
+                <p className="mt-3 text-[11px] text-[#FA2D1A]">
+                  Please select Yes or No to continue.
                 </p>
-              </form>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={handleContinue}
+                disabled={!canContinue}
+                className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold text-white shadow-md hover:shadow-lg transition active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ backgroundColor: "#FA2D1A" }}
+              >
+                {buttonText}
+                <ArrowRight className="w-5 h-5" />
+              </button>
+
+              <p className="text-[11px] text-center text-[#3B3F4A] mt-3">
+                This is a one-time offer. If you skip now, it may not show again.
+              </p>
             </div>
           </motion.div>
 

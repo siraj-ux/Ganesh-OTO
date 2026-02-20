@@ -94,7 +94,7 @@ function sendToPabblyBestEffort(payload: Record<string, any>) {
 
 /* ---------------- PAGE ---------------- */
 
-const OtoPage = () => {
+const GaPage = () => {
   const [lead, setLead] = useState({
     name: "",
     email: "",
@@ -369,4 +369,4 @@ const OtoPage = () => {
   );
 };
 
-export default OtoPage;
+export default GaPage;

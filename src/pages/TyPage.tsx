@@ -47,20 +47,46 @@ const TyPage = () => {
     },
   ];
 
+  /**
+   * Enhanced Download Handler
+   * Uses a hidden iframe to trigger the download. This prevents mobile 
+   * browsers from redirecting to a new tab or opening the Google Drive app.
+   */
   const handleDownload = (title: string, link: string) => {
-    const a = document.createElement("a");
-    a.href = link;
-    a.rel = "noopener noreferrer";
-    a.target = "_self";
-    a.setAttribute("download", "");
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+      // 1. Create a hidden iframe
+      const iframe = document.createElement("iframe");
+      
+      // 2. Configure iframe to be invisible
+      iframe.style.display = "none";
+      iframe.style.visibility = "hidden";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.position = "absolute";
+      iframe.style.border = "none";
+      
+      // 3. Set the source to the download link
+      iframe.src = link;
+      
+      // 4. Append to document and trigger the browser's download manager
+      document.body.appendChild(iframe);
 
-    toast({
-      title: "Download Started",
-      description: `${title} is downloading now`,
-    });
+      // 5. Clean up the DOM after the request has been sent (5 seconds)
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 5000);
+
+      // 6. Notify the user
+      toast({
+        title: "Download Started",
+        description: `${title} is downloading now. Check your notifications.`,
+      });
+    } catch (error) {
+      // Fallback if iframe fails (unlikely)
+      window.location.href = link;
+    }
   };
 
   return (
@@ -134,7 +160,7 @@ const TyPage = () => {
               <h3 className="text-2xl font-bold mb-3">Join Our Exclusive VIP WhatsApp Group</h3>
               <p className="text-muted-foreground mb-6">Real-time market updates and direct insights from Ganesh Sir</p>
               <Button
-                onClick={() => window.open("https://ganeshkomma.com/join-whatsapp", "_blank")}
+                onClick={() => window.open("https://chat.whatsapp.com/YOUR_LINK_HERE", "_blank")}
                 className="bg-[#25D366] hover:bg-[#128C7E] text-white font-bold px-8 py-6 text-lg rounded-full"
               >
                 Join VIP WhatsApp Group
@@ -143,7 +169,7 @@ const TyPage = () => {
           </Card>
         </motion.div>
 
-        {/* Download Cards Grid - 2 columns on Desktop, Centered Content */}
+        {/* Download Cards Grid */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -161,7 +187,6 @@ const TyPage = () => {
                 whileHover={{ y: -8 }}
               >
                 <Card className="relative overflow-hidden bg-card border-border hover:border-primary/50 transition-all duration-300 h-full group">
-                  {/* items-center and text-center applies to both Mobile and Desktop */}
                   <div className="relative p-8 flex flex-col items-center text-center h-full">
                     {/* Icon Container */}
                     <div className="mb-6 p-4 bg-background/50 rounded-xl">
@@ -212,4 +237,3 @@ const TyPage = () => {
 };
 
 export default TyPage;
-

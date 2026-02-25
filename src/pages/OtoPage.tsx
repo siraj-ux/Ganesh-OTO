@@ -136,10 +136,8 @@ const OtoPage = () => {
   async function handleContinue() {
     setSubmittedOnce(true);
     
-    // If choice isn't made, do nothing
     if (!choiceIsValid) return;
 
-    // If choice is made but data is missing, show error (stop execution)
     if (!leadIsValid) {
         console.error("Lead data missing from URL or LocalStorage");
         return;
@@ -178,7 +176,6 @@ const OtoPage = () => {
       return;
     }
 
-    // If choice is "no"
     window.location.href = `${THANKYOU_URL}?${params}`;
   }
 
@@ -190,15 +187,15 @@ const OtoPage = () => {
       <div className="pointer-events-none absolute top-24 right-0 h-72 w-72 rounded-full bg-[#FA2D1A]/10 blur-3xl" />
 
       <div className="container-main relative z-10 py-10 md:py-12">
-        <div className="lg:grid lg:grid-cols-[1.2fr_.8fr] lg:gap-8 lg:items-start">
+        <div className="flex flex-col lg:grid lg:grid-cols-[1.2fr_.8fr] lg:gap-8 lg:items-start">
           
-          {/* ===================== HEADER ===================== */}
+          {/* ===================== 1. HEADER & PRICE (Mobile: 1st) ===================== */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.45 }}
-            className="lg:col-start-1 lg:row-start-1 space-y-5"
+            className="order-1 lg:col-start-1 lg:row-start-1 space-y-5"
           >
             <div className="inline-flex items-center gap-2 rounded-full border border-[#2E4C8C]/15 bg-white/70 px-3 py-1 text-xs font-semibold text-[#2E4C8C]">
              🚨 WAIT — Before You Go
@@ -226,13 +223,38 @@ const OtoPage = () => {
             </div>
           </motion.div>
 
-          {/* ===================== CHOICE BOX ===================== */}
+          {/* ===================== 2. IMAGE SECTION (Mobile: 2nd) ===================== */}
+          <motion.div
+             initial={{ opacity: 0, y: 14 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ duration: 0.45, delay: 0.08 }}
+             className="order-2 mt-6 lg:mt-8 lg:col-start-1 lg:row-start-2"
+          >
+             <div className="rounded-2xl overflow-hidden border border-[#2E4C8C]/20 bg-[#050816]">
+                <div className="px-5 pt-5 pb-3 md:px-6 md:pt-6 md:pb-4">
+                  <h2 className="text-lg md:text-xl font-extrabold text-white">
+                    AI-Powered Stock Market Mastery Series
+                  </h2>
+                </div>
+                <div className="w-full">
+                  <img
+                    src="/image-books.png"
+                    alt="AI-Powered Stock Market Mastery Series"
+                    className="w-full h-auto max-h-[360px] md:max-h-[420px] object-contain"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+          </motion.div>
+
+          {/* ===================== 3. CHOICE BOX (Mobile: 3rd) ===================== */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.05 }}
-            className="mt-6 lg:mt-0 lg:col-start-2 lg:row-start-1 lg:row-span-2 rounded-2xl border border-[#2E4C8C]/15 bg-white/70 shadow-xl overflow-hidden sticky top-6"
+            className="order-3 lg:order-2 mt-6 lg:mt-0 lg:col-start-2 lg:row-start-1 lg:row-span-3 rounded-2xl border border-[#2E4C8C]/15 bg-white/70 shadow-xl overflow-hidden sticky top-6"
           >
             <div className="p-5">
               <div className="text-center mb-4">
@@ -309,33 +331,14 @@ const OtoPage = () => {
             </div>
           </motion.div>
 
-          {/* ===================== IMAGE + BENEFITS ===================== */}
+          {/* ===================== 4. BENEFITS SECTION (Mobile: 4th) ===================== */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.08 }}
-            className="mt-6 lg:mt-8 lg:col-span-2"
+            className="order-4 mt-6 lg:col-start-1 lg:row-start-3"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Left: Book image */}
-              <div className="rounded-2xl overflow-hidden border border-[#2E4C8C]/20 bg-[#050816]">
-                <div className="px-5 pt-5 pb-3 md:px-6 md:pt-6 md:pb-4">
-                  <h2 className="text-lg md:text-xl font-extrabold text-white">
-                    AI-Powered Stock Market Mastery Series
-                  </h2>
-                </div>
-                <div className="w-full">
-                  <img
-                    src="/image-books.png"
-                    alt="AI-Powered Stock Market Mastery Series"
-                    className="w-full h-auto max-h-[360px] md:max-h-[420px] object-contain"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-
-              {/* Right: What You Get */}
               <div className="rounded-2xl border border-[#2E4C8C]/12 bg-white/70 p-5 space-y-5">
                 <div>
                   <h2 className="text-xl md:text-2xl font-extrabold text-[#2E4C8C]">
@@ -382,7 +385,6 @@ const OtoPage = () => {
                   </div>
                 </div>
               </div>
-            </div>
           </motion.div>
         </div>
       </div>

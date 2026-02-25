@@ -309,57 +309,77 @@ const OtoPage = () => {
             </div>
           </motion.div>
 
-          {/* ===================== BENEFITS ===================== */}
+          {/* ===================== IMAGE + BENEFITS ===================== */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.08 }}
-            className="mt-6 lg:mt-0 lg:col-start-1 lg:row-start-2"
+            className="mt-6 lg:mt-8 lg:col-span-2"
           >
-            <div className="rounded-2xl border border-[#2E4C8C]/12 bg-white/70 p-5 space-y-5">
-              <div>
-                <h2 className="text-xl md:text-2xl font-extrabold text-[#2E4C8C]">
-                  What You Get (100+ AI Prompts)
-                </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Left: Book image */}
+              <div className="rounded-2xl overflow-hidden border border-[#2E4C8C]/20 bg-[#050816]">
+                <div className="px-5 pt-5 pb-3 md:px-6 md:pt-6 md:pb-4">
+                  <h2 className="text-lg md:text-xl font-extrabold text-white">
+                    AI-Powered Stock Market Mastery Series
+                  </h2>
+                </div>
+                <div className="w-full">
+                  <img
+                    src="/image-books.png"
+                    alt="AI-Powered Stock Market Mastery Series"
+                    className="w-full h-auto max-h-[360px] md:max-h-[420px] object-contain"
+                    loading="lazy"
+                  />
+                </div>
               </div>
 
-              <div className="rounded-2xl border border-[#2E4C8C]/12 bg-white/80 p-4 space-y-3">
-                {[
-                  "Decode any IPO DRHP in minutes",
-                  "Detect financial red flags early",
-                  "Identify breakouts, trends & key levels",
-                  "Enter & exit trades using structured frameworks",
-                  "Analyze concalls like a research analyst"
-                ].map((item, idx) => (
-                  <p key={idx} className="text-sm font-bold text-[#1A1F2B] flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-[#FA2D1A] shrink-0" />
-                    {item}
-                  </p>
-                ))}
-                
-                <div className="pt-2">
-                    <p className="text-sm font-extrabold text-[#2E4C8C]">
-                        No guesswork. No emotional trades. Just structured clarity.
+              {/* Right: What You Get */}
+              <div className="rounded-2xl border border-[#2E4C8C]/12 bg-white/70 p-5 space-y-5">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-extrabold text-[#2E4C8C]">
+                    What You Get (100+ AI Prompts)
+                  </h2>
+                </div>
+
+                <div className="rounded-2xl border border-[#2E4C8C]/12 bg-white/80 p-4 space-y-3">
+                  {[
+                    "Decode any IPO DRHP in minutes",
+                    "Detect financial red flags early",
+                    "Identify breakouts, trends & key levels",
+                    "Enter & exit trades using structured frameworks",
+                    "Analyze concalls like a research analyst"
+                  ].map((item, idx) => (
+                    <p key={idx} className="text-sm font-bold text-[#1A1F2B] flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-[#FA2D1A] shrink-0" />
+                      {item}
                     </p>
+                  ))}
+                  
+                  <div className="pt-2">
+                    <p className="text-sm font-extrabold text-[#2E4C8C]">
+                      No guesswork. No emotional trades. Just structured clarity.
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="rounded-2xl border border-[#FA2D1A]/20 bg-[#FA2D1A]/10 p-4">
-                <p className="font-extrabold text-[#1A1F2B]">🎁 Bonuses Included — FREE</p>
-                <div className="text-sm text-[#3B3F4A] mt-2 space-y-1">
-                  <span className="block">✔ AI Research Templates (Copy–Paste Ready)</span>
-                  <span className="block">✔ Ready-to-Use Company Analysis Script</span>
-                  <span className="block">✔ Structured Market Research Framework</span>
+                <div className="rounded-2xl border border-[#FA2D1A]/20 bg-[#FA2D1A]/10 p-4">
+                  <p className="font-extrabold text-[#1A1F2B]">🎁 Bonuses Included — FREE</p>
+                  <div className="text-sm text-[#3B3F4A] mt-2 space-y-1">
+                    <span className="block">✔ AI Research Templates (Copy–Paste Ready)</span>
+                    <span className="block">✔ Ready-to-Use Company Analysis Script</span>
+                    <span className="block">✔ Structured Market Research Framework</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1 border-t border-[#2E4C8C]/5 pt-4">
-                <div className="text-xs font-bold text-[#FA2D1A]">
+                <div className="space-y-1 border-t border-[#2E4C8C]/5 pt-4">
+                  <div className="text-xs font-bold text-[#FA2D1A]">
                     ⚠ True One-Time Offer
-                </div>
-                <div className="text-xs text-[#3B3F4A]">
+                  </div>
+                  <div className="text-xs text-[#3B3F4A]">
                     ⚠ Disappears Once You Leave This Page
+                  </div>
                 </div>
               </div>
             </div>

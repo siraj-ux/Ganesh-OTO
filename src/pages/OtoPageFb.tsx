@@ -13,7 +13,7 @@ const PABBLY_OTO_WEBHOOK_URL =
   "https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjcwNTZmMDYzNjA0M2M1MjY4NTUzMzUxMzIi_pc";
 
 const PAYMENT_LINK_99 =
-  "https://pages.razorpay.com/pl_Ry77FbJBRdJVDu/view";
+  "https://pages.razorpay.com/pl_SMJzUwZuVWqjzT/view";
 
 const THANKYOU_URL = "/tyfb";
 const PAGE_NAME = "A1_Eng_ADX_OTO_FB";

@@ -17,6 +17,7 @@ const PAYMENT_LINK_99 =
 
 const THANKYOU_URL = "/tyfb";
 const PAGE_NAME = "A1_Eng_ADX_OTO_FB";
+const PRODUCT_IDENTIFIER = "AI Stock and IPO Prompt Codex_FB";
 
 /* ---------------- helpers ---------------- */
 
@@ -161,7 +162,7 @@ const OtoPageFb = () => {
     localStorage.setItem("lead_data", JSON.stringify(lead));
     localStorage.setItem("lead_utms", JSON.stringify(utms));
 
-    // Prepare params for redirection (stored in variable so they are still available)
+    // Prepare params for redirection
     const params = new URLSearchParams({
       first_name: lead.name,
       email: lead.email,
@@ -173,6 +174,7 @@ const OtoPageFb = () => {
       oto: choice,
       oto_product: "AI Stock & IPO Prompt Codex",
       oto_price: "99",
+      product: PRODUCT_IDENTIFIER, // <--- ADDED PRODUCT PARAMETER
       ...utms,
     }).toString();
 
@@ -184,7 +186,6 @@ const OtoPageFb = () => {
           content_category: "OTO",
           value: 99.00,
           currency: "INR",
-          // Send PII safely via Advanced Matching parameters instead of the URL
           em: lead.email.toLowerCase().trim(),
           ph: lead.phone.replace(/\D/g, ""),
         });
@@ -198,6 +199,7 @@ const OtoPageFb = () => {
         oto: "yes",
         oto_product: "AI Stock & IPO Prompt Codex",
         oto_price: "99",
+        product: PRODUCT_IDENTIFIER, // <--- ADDED PRODUCT TO PABBLY
       });
 
       await new Promise((r) => setTimeout(r, 150)); // Small delay for pixel to fire
